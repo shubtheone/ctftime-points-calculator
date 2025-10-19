@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Team Total Points</h2>
+<form method="post">
+  <label>CTFtime Team ID
+    <input type="text" name="team_id" value="{{ team_id }}" placeholder="e.g., 123456" required />
+  </label>
+  <label>Top N events (Make sure to choose 10 to calculate your total points)
+    <input type="number" name="top_n" value="{{ top_n or 10 }}" min="1" max="20" />
+  </label>
+  <label>
+    <input type="checkbox" name="exclude_hosted" {% if exclude_hosted %}checked{% endif %} />
+    Exclude hosted events (*)
+  </label>
+  <label>
+    <input type="checkbox" name="enrich_weights" {% if enrich_weights %}checked{% endif %} />
+    Show event weight and hosted 2x
+  </label>
+  <button type="submit">Fetch</button>
+</form>
+
+{% if events %}
+  <h3>Results</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Place</th>
+        <th>Event</th>
+        <th>Code</th>
+        <th>Rating</th>
+        <th>Hosted</th>
+        {% if enrich_weights %}
+        <th>Weight</th>
+        <th>Hosted 2x</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in top %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ e.place }}</td>
+        <td>
+          {% if e.event_link %}
+            <a href="{{ e.event_link }}" target="_blank" rel="noreferrer">{{ e.event_name }}</a>
+          {% else %}
+            {{ e.event_name }}
+          {% endif %}
+        </td>
+        <td>{{ e.event_code or '-' }}</td>
+        <td>{{ '%.3f'|format(e.rating_points) }}</td>
+        <td>{% if e.is_hosted %}*{% endif %}</td>
+        {% if enrich_weights %}
+        <td>{% if e.weight is not none %}{{ '%.2f'|format(e.weight) }}{% else %}-{% endif %}</td>
+        <td>{% if e.hosted_double is not none %}{{ '%.2f'|format(e.hosted_double) }}{% else %}-{% endif %}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if total is not none %}
+    <p><strong>Total (top {{ top|length }}): {{ '%.3f'|format(total) }}</strong></p>
+  {% endif %}
+{% endif %}
+{% endblock %}
