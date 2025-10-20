@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -45,9 +45,6 @@ class TeamEvent:
     rating_points: float
     is_hosted: bool
     event_link: str | None = None
-    event_code: str | None = None
-    weight: Optional[float] = None
-    hosted_double: Optional[float] = None
 
 
 def fetch_team_events(team_id: str) -> List[TeamEvent]:
@@ -74,18 +71,6 @@ def fetch_team_events(team_id: str) -> List[TeamEvent]:
         event_cell = cols[2]
         event_name = event_cell.get_text(strip=True)
         event_link = event_cell.find("a")["href"] if event_cell.find("a") else None
-        event_code = None
-        if event_link:
-            # Expect formats like "/event/2848" or full URLs
-            try:
-                parts = event_link.rstrip("/").split("/")
-                # last token that is numeric is likely the code
-                for token in reversed(parts):
-                    if token.isdigit():
-                        event_code = token
-                        break
-            except Exception:
-                event_code = None
 
         rating_raw = cols[4].get_text(strip=True)
         is_hosted = "*" in rating_raw
@@ -103,7 +88,6 @@ def fetch_team_events(team_id: str) -> List[TeamEvent]:
                 rating_points=rating_points,
                 is_hosted=is_hosted,
                 event_link=event_link,
-                event_code=event_code,
             )
         )
 
@@ -125,44 +109,30 @@ def summarize_team_points(
     return top, float(total)
 
 
-_WEIGHT_CACHE: Dict[str, float] = {}
+def fetch_event_weight(event_id: str) -> float | None:
+    """Fetch the rating weight from a CTFtime event page.
 
-
-def fetch_event_weight(event_code: str, *, timeout: int = 30) -> Optional[float]:
-    """Fetch an event's rating weight from its CTFtime page.
-
-    Returns the weight as a float, or None if not found.
-    Caches results in-memory for the process lifetime.
+    It looks for a paragraph like:
+      <p>Rating weight: 23.71 <a href="/faq/#weight"> ...
+    and extracts the numeric value.
     """
-    if not event_code:
-        return None
-    if event_code in _WEIGHT_CACHE:
-        return _WEIGHT_CACHE[event_code]
-
-    url = f"https://ctftime.org/event/{event_code}"
-    resp = requests.get(url, timeout=timeout)
+    url = f"https://ctftime.org/event/{event_id}"
+    resp = requests.get(url, timeout=30)
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
 
-    # Look for text like: "Rating weight: 23.71"
-    # It's typically inside a <p>, but we can just search text nodes
-    text = soup.get_text(" ", strip=True)
-    marker = "Rating weight:"
-    idx = text.find(marker)
-    if idx == -1:
-        return None
-    tail = text[idx + len(marker) :].strip()
-    # tail starts with number like 23.71; parse until first space
-    num = []
-    for ch in tail:
-        if ch.isdigit() or ch in ".,":
-            num.append(ch)
-        else:
-            break
-    num_str = "".join(num).replace(",", ".")
-    try:
-        weight = float(num_str)
-    except ValueError:
-        return None
-    _WEIGHT_CACHE[event_code] = weight
-    return weight
+    soup = BeautifulSoup(resp.text, "html.parser")
+    # Find a <p> that starts with 'Rating weight:' and extract the number
+    for p in soup.find_all("p"):
+        text = p.get_text(strip=True)
+        if text.lower().startswith("rating weight:"):
+            # Extract the first float number from the text
+            # e.g., 'Rating weight: 23.71' -> 23.71
+            try:
+                # split on ':' and take the part after, then split by space
+                after_colon = text.split(":", 1)[1].strip()
+                number_str = "".join(ch for ch in after_colon if (ch.isdigit() or ch == "."))
+                if number_str:
+                    return float(number_str)
+            except Exception:
+                continue
+    return None
