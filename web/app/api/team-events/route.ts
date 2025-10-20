@@ -70,8 +70,14 @@ async function fetchEventWeight(id: string): Promise<number | null> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { team_id, top_n = 10, include_hosted = false, hosted_event_id } =
-      await req.json();
+    // Accept both `event_id` (used by the UI) and `hosted_event_id` (older name)
+    const {
+      team_id,
+      top_n = 10,
+      include_hosted = false,
+      hosted_event_id,
+      event_id,
+    } = await req.json();
 
     if (!team_id) {
       return NextResponse.json({ error: "Missing team_id" }, { status: 400 });
@@ -92,23 +98,31 @@ export async function POST(req: NextRequest) {
     let events = parseTeamEvents(html);
 
     // Optional hosted event injection (approximation: points = weight * 2)
-    if (include_hosted && hosted_event_id) {
-      const weight = await fetchEventWeight(String(hosted_event_id));
-      if (weight && weight > 0) {
+    let event_weight: number | null = null;
+    let hosted_points: number | null = null;
+    const hostedId = hosted_event_id || event_id; // support either name
+    if (include_hosted && hostedId) {
+      event_weight = await fetchEventWeight(String(hostedId));
+      if (event_weight && event_weight > 0) {
+        hosted_points = event_weight * 2;
         events.push({
           place: "host",
-          event_name: `Hosted event ${hosted_event_id}`,
-          rating_points: weight * 2,
+          event_name: `Hosted event ${hostedId}`,
+          rating_points: hosted_points,
           is_hosted: true,
-          event_link: `https://ctftime.org/event/${hosted_event_id}/`,
+          event_link: `https://ctftime.org/event/${hostedId}/`,
         });
       }
     }
 
-    const top = events.slice(0, Number(top_n) || 10);
+    // Ensure sorting accounts for any injected hosted event
+    events.sort((a, b) => b.rating_points - a.rating_points);
+
+    const n = Number(top_n) || 10;
+    const top = events.slice(0, n);
     const total = top.reduce((s, e) => s + (e.rating_points || 0), 0);
 
-    return NextResponse.json({ events, top, total });
+    return NextResponse.json({ events, top, total, event_weight, hosted_points });
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message ?? "Internal error" },
