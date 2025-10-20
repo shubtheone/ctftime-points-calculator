@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from flask import Flask, render_template, request
+from flask import send_from_directory
 
 from calculator import (
     calculate_event_rating,
@@ -14,6 +15,12 @@ from calculator import (
 
 def create_app() -> Flask:
     app = Flask(__name__)
+
+    @app.get("/favicon.ico")
+    def favicon():
+        # Serve no favicon gracefully to avoid noisy 404s; returns 204 No Content
+        from flask import Response
+        return Response(status=204)
 
     @app.get("/")
     def index():
