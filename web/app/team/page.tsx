@@ -1,44 +1,49 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-function toggleIncludeHosted(include: boolean) {
-  if (typeof document === "undefined") return;
-  const eventInput = document.getElementById("event_id") as HTMLInputElement | null;
-  if (eventInput) eventInput.disabled = !include;
+function getYear() {
+  return String(new Date().getFullYear());
 }
 
 export default function TeamPage() {
   const [teamId, setTeamId] = useState("");
   const [topN, setTopN] = useState("10");
   const [includeHosted, setIncludeHosted] = useState(false);
-  const [eventId, setEventId] = useState("");
-  const [eventWeight, setEventWeight] = useState<number | null>(null);
-  const [hostedPoints, setHostedPoints] = useState<number | null>(null);
+  const [hostedPoints, setHostedPoints] = useState<number | null>(null); // organizer points
   const [error, setError] = useState<string | null>(null);
   const [top, setTop] = useState<any[]>([]);
   const [total, setTotal] = useState<number | null>(null);
 
-  useEffect(() => {
-    toggleIncludeHosted(includeHosted);
-  }, [includeHosted]);
+  async function fetchOrganizerPoints(id: string) {
+    if (!id) return null;
+    const res = await fetch(`/api/team?team_id=${encodeURIComponent(id)}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const team = j?.team ?? j; // be resilient
+    const y = getYear();
+    // Try common shapes: team.rating[year].organizer_points OR team[year].organizer_points
+    const op =
+      team?.rating?.[y]?.organizer_points ??
+      team?.[y]?.organizer_points ??
+      null;
+    return typeof op === "number" ? op : null;
+  }
 
   function onToggleInclude() {
     const next = !includeHosted;
     setIncludeHosted(next);
   }
 
-  async function fetchWeight(id: string) {
-    if (!id) return;
-    const r = await fetch(`/api/event?id=${encodeURIComponent(id)}`);
-    const j = await r.json();
-    if (typeof j.weight === "number") {
-      setEventWeight(j.weight);
-      setHostedPoints(j.weight * 2);
-    } else {
-      setEventWeight(null);
-      setHostedPoints(null);
-    }
-  }
+  useEffect(() => {
+    // Auto-fetch organizer points when toggled on and teamId is present
+    (async () => {
+      if (includeHosted && teamId) {
+        const op = await fetchOrganizerPoints(teamId);
+        setHostedPoints(op);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includeHosted, teamId]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +51,12 @@ export default function TeamPage() {
     setTop([]);
     setTotal(null);
     try {
+      // If including hosted points, refresh them just before submit for safety
+      let organizerPts: number | null = hostedPoints;
+      if (includeHosted) {
+        organizerPts = await fetchOrganizerPoints(teamId);
+        setHostedPoints(organizerPts);
+      }
       const r = await fetch("/api/team-events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,14 +64,13 @@ export default function TeamPage() {
           team_id: teamId,
           top_n: topN,
           include_hosted: includeHosted,
-          event_id: eventId,
+          hosted_points: organizerPts ?? undefined,
         }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
       setTop(j.top || []);
       setTotal(typeof j.total === "number" ? j.total : null);
-      if (typeof j.event_weight === "number") setEventWeight(j.event_weight);
       if (typeof j.hosted_points === "number") setHostedPoints(j.hosted_points);
     } catch (err: any) {
       setError(err.message || "Failed to fetch team data");
@@ -83,21 +93,11 @@ export default function TeamPage() {
         <div style={{ margin: ".5rem 0" }}>
           <label>
             <input type="checkbox" id="include_hosted" checked={includeHosted} onChange={onToggleInclude} />
-            Include your hosted events (requires event number eg. https://ctftime.org/event/2848)
+            Include organizer points (taken from CTFtime team API for the current year)
           </label>
-          <input
-            type="text"
-            id="event_id"
-            placeholder="enter event number (e.g., 2848)"
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
-            onFocus={() => setIncludeHosted(true)}
-            onClick={() => setIncludeHosted(true)}
-            disabled={!includeHosted}
-          />
-          {eventWeight !== null && (
-            <span title="Rating weight fetched from event page">
-              Weight: {eventWeight.toFixed(2)} & Points Gain = {(eventWeight * 2).toFixed(2)}
+          {includeHosted && (
+            <span title="Organizer points from CTFtime team API">
+              Organizer points: {hostedPoints != null ? hostedPoints.toFixed(3) : "—"}
             </span>
           )}
         </div>
