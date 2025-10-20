@@ -3,11 +3,10 @@ import React, { useState } from "react";
 
 export default function EventPage() {
   const [form, setForm] = useState({
-    weight: "",
-    total_teams: "",
+    team_points: "",
     best_points: "",
     team_place: "",
-    team_points: "",
+    weight: "",
   });
   const [result, setResult] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +26,6 @@ export default function EventPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           weight: form.weight,
-          total_teams: form.total_teams,
           best_points: form.best_points,
           team_place: form.team_place,
           team_points: form.team_points,
@@ -61,24 +59,20 @@ export default function EventPage() {
       {error && <div className="error">{error}</div>}
       <form onSubmit={onSubmit}>
         <label>
-          Event weight
-          <input type="number" name="weight" step="0.01" value={form.weight} onChange={onChange} required />
+          Your team points
+          <input type="number" name="team_points" step="0.01" value={form.team_points} onChange={onChange} required />
         </label>
         <label>
-          Total teams
-          <input type="number" name="total_teams" step="1" value={form.total_teams} onChange={onChange} required />
-        </label>
-        <label>
-          Best team points (#1)
+          Best team points
           <input type="number" name="best_points" step="0.01" value={form.best_points} onChange={onChange} required />
         </label>
         <label>
-          Your team place
+          Your team position
           <input type="number" name="team_place" step="1" value={form.team_place} onChange={onChange} required />
         </label>
         <label>
-          Your team points
-          <input type="number" name="team_points" step="0.01" value={form.team_points} onChange={onChange} required />
+          Event weight
+          <input type="number" name="weight" step="0.01" value={form.weight} onChange={onChange} required />
         </label>
         <button type="submit">Calculate</button>
       </form>
@@ -87,7 +81,7 @@ export default function EventPage() {
         <>
           <h3>Calculated Rating</h3>
           <p>
-            <strong>{result.toFixed(3)}</strong>
+            <strong>{result.toFixed(6)}</strong>
           </p>
         </>
       )}
