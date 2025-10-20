@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import * as cheerio from "cheerio";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const preferredRegion = ["sfo1", "cdg1", "hnd1"];
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);

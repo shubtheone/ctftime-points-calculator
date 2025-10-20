@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 // Minimal placeholder: fetch basic team info from CTFtime API.
 // You can extend this to compute totals/top-N like your Flask code did.
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const preferredRegion = ["sfo1", "cdg1", "hnd1"];
+
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const teamId = url.searchParams.get("team_id");

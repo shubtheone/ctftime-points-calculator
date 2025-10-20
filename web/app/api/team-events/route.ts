@@ -10,6 +10,8 @@ type TeamEvent = {
   event_link?: string | null;
 };
 
+export const runtime = "nodejs";
+export const preferredRegion = ["sfo1", "cdg1", "hnd1"];
 export const dynamic = "force-dynamic";
 
 function toAbsolute(link?: string | null): string | null {

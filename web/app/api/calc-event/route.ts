@@ -2,6 +2,8 @@ import "../_polyfill";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const preferredRegion = ["sfo1", "cdg1", "hnd1"];
 
 function toFloat(v: unknown): number {
   const n = typeof v === "string" ? parseFloat(v) : Number(v);
