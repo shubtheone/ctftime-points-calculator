@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CTFtime Points Calculator</title>
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>CTFtime Points Calculator</h1>
+      <nav>
+        <a href="/">Home</a>
+        &middot;
+        <a href="/event">Event Rating</a>
+        &middot;
+        <a href="/team">Team Total</a>
+      </nav>
+      <hr />
+    </header>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+
+    <footer>
+      <hr />
+      <p>
+        Built for convenience by shub | team 0bscuri7y. Data sourced from <a href="https://ctftime.org" target="_blank" rel="noreferrer">CTFtime</a>.
+      </p>
+    </footer>
+      {% block scripts %}{% endblock %}
+  </body>
+  </html>
