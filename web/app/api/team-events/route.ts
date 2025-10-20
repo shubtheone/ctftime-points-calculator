@@ -12,7 +12,7 @@ type TeamEvent = {
 
 export const dynamic = "force-dynamic";
 
-function toAbsolute(link: string | null | undefined): string | null {
+function toAbsolute(link?: string | null): string | null {
   if (!link) return null;
   if (link.startsWith("http")) return link;
   return `https://ctftime.org${link}`;
@@ -20,24 +20,35 @@ function toAbsolute(link: string | null | undefined): string | null {
 
 function parseTeamEvents(html: string): TeamEvent[] {
   const $ = cheerio.load(html);
-  const table = $("table.table-striped");
+  const table = $("table.table-striped").first();
   if (!table.length) return [];
   const rows = table.find("tr").slice(1);
+
   const events: TeamEvent[] = [];
   rows.each((_, row) => {
-    const cols = $(row).find("td");
-    if (cols.length !== 5) return;
-    const place = $(cols[1]).text().trim();
-    const eventCell = $(cols[2]);
-    const event_name = eventCell.text().trim();
-    const linkEl = eventCell.find("a").first();
-  const event_link = linkEl.length ? toAbsolute(linkEl.attr("href")) : null;
-    const rating_raw = $(cols[4]).text().trim();
-    const is_hosted = rating_raw.includes("*");
-    const rating_points = parseFloat(rating_raw.replace("*", ""));
-    if (!Number.isFinite(rating_points)) return;
-    events.push({ place, event_name, rating_points, is_hosted, event_link });
+    const tds = $(row).find("td");
+    if (tds.length < 5) return;
+
+    const place = $(tds[0]).text().trim();
+    const nameCell = $(tds[1]);
+    const event_name = nameCell.text().trim();
+    const event_link = toAbsolute(nameCell.find("a").attr("href") || null);
+
+    // Rating points often in the last or 2nd last column
+    const ptsText =
+      $(tds[tds.length - 1]).text().trim() ||
+      $(tds[tds.length - 2]).text().trim();
+    const rating_points = parseFloat(ptsText || "0") || 0;
+
+    events.push({
+      place,
+      event_name,
+      rating_points,
+      is_hosted: false,
+      event_link,
+    });
   });
+
   events.sort((a, b) => b.rating_points - a.rating_points);
   return events;
 }
@@ -49,64 +60,57 @@ async function fetchEventWeight(id: string): Promise<number | null> {
   });
   if (!res.ok) return null;
   const html = await res.text();
-  const patterns = [/Weight:\s*([0-9.]+)/i, /Rating weight:\s*([0-9.]+)/i];
-  for (const rx of patterns) {
-    const m = html.match(rx);
-    if (m) return parseFloat(m[1]);
-  }
-  const $ = cheerio.load(html);
-  const text = $("body").text();
-  const m = text.match(/Weight:\s*([0-9.]+)/i);
+  const m =
+    html.match(/Weight:\s*([0-9.]+)/i) ||
+    html.match(/Rating weight:\s*([0-9.]+)/i);
   return m ? parseFloat(m[1]) : null;
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  const team_id = String(body.team_id || "").trim();
-  const top_n = Math.max(0, Math.trunc(Number(body.top_n || 10)));
-  const include_hosted = Boolean(body.include_hosted);
-  const event_id = String(body.event_id || "").trim();
+  try {
+    const { team_id, top_n = 10, include_hosted = false, hosted_event_id } =
+      await req.json();
 
-  if (!team_id) {
-    return NextResponse.json({ error: "Please provide a team ID (e.g., 123456)." }, { status: 400 });
-  }
-
-  const res = await fetch(`https://ctftime.org/team/${team_id}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (ctfcalc)", Accept: "text/html" },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    return NextResponse.json({ error: `CTFtime returned ${res.status}` }, { status: res.status });
-  }
-  const html = await res.text();
-  const all = parseTeamEvents(html);
-  const base = all.filter((e) => !e.is_hosted);
-  const baseSorted = base.slice().sort((a, b) => b.rating_points - a.rating_points);
-  const baseTop = baseSorted.slice(0, top_n);
-  const baseTotal = baseTop.reduce((s, e) => s + e.rating_points, 0);
-
-  let event_weight: number | null = null;
-  let hosted_points: number | null = null;
-  let top = baseTop;
-  let total = baseTotal;
-
-  if (include_hosted && event_id) {
-    event_weight = await fetchEventWeight(event_id);
-    if (typeof event_weight === "number") {
-      hosted_points = 2 * event_weight;
-      const hostedEvent: TeamEvent = {
-        place: "host",
-        event_name: `Your hosted event - ${event_id}`,
-        rating_points: hosted_points,
-        is_hosted: true,
-        event_link: `https://ctftime.org/event/${event_id}`,
-      };
-      const candidate = base.concat([hostedEvent]);
-      candidate.sort((a, b) => b.rating_points - a.rating_points);
-      top = candidate.slice(0, top_n);
-      total = top.reduce((s, e) => s + e.rating_points, 0);
+    if (!team_id) {
+      return NextResponse.json({ error: "Missing team_id" }, { status: 400 });
     }
-  }
 
-  return NextResponse.json({ top, total, event_weight, hosted_points });
+    const res = await fetch(`https://ctftime.org/team/${team_id}/`, {
+      headers: { "User-Agent": "Mozilla/5.0 (ctfcalc)", Accept: "text/html" },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: `CTFtime returned ${res.status}` },
+        { status: res.status }
+      );
+    }
+
+    const html = await res.text();
+    let events = parseTeamEvents(html);
+
+    // Optional hosted event injection (approximation: points = weight * 2)
+    if (include_hosted && hosted_event_id) {
+      const weight = await fetchEventWeight(String(hosted_event_id));
+      if (weight && weight > 0) {
+        events.push({
+          place: "host",
+          event_name: `Hosted event ${hosted_event_id}`,
+          rating_points: weight * 2,
+          is_hosted: true,
+          event_link: `https://ctftime.org/event/${hosted_event_id}/`,
+        });
+      }
+    }
+
+    const top = events.slice(0, Number(top_n) || 10);
+    const total = top.reduce((s, e) => s + (e.rating_points || 0), 0);
+
+    return NextResponse.json({ events, top, total });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message ?? "Internal error" },
+      { status: 500 }
+    );
+  }
 }
