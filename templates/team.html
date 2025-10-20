@@ -11,7 +11,7 @@
   <div style="margin: .5rem 0;">
     <label>
       <input type="checkbox" id="include_hosted" name="include_hosted" {% if include_hosted %}checked{% endif %} onclick="toggleIncludeHosted()" />
-      Include hosted events (requires event number)
+      Include your hosted events (requires event number eg. https://ctftime.org/event/2848)
     </label>
   <input type="text" id="event_id" name="event_id" placeholder="enter event number (e.g., 2848)" value="{{ event_id or '' }}" {% if not include_hosted %}disabled{% endif %} onfocus="forceIncludeHosted()" onclick="forceIncludeHosted()" />
     {% if event_weight is not none %}

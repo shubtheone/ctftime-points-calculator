@@ -88,7 +88,7 @@ def create_app() -> Flask:
                                 hosted_points = 2.0 * float(event_weight)
                                 hosted_event = TeamEvent(
                                     place="host",
-                                    event_name=f"Hosted event {event_id.strip()}",
+                                    event_name=f"Your hosted event - {event_id.strip()}",
                                     rating_points=hosted_points,
                                     is_hosted=True,
                                     event_link=f"https://ctftime.org/event/{event_id.strip()}",
