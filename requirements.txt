@@ -1,3 +1,5 @@
-Flask>=3.0.0
-requests>=2.32.5
-bs4>=0.0.2
+Flask>=3.0
+requests>=2.31
+beautifulsoup4>=4.12
+vercel-wsgi>=0.8.5
+typing-extensions>=4.15

@@ -2,6 +2,6 @@ import os
 from vercel_wsgi import handle
 from app import app as flask_app
 
-def handler(environ, start_response):
-    os.environ.setdefault("FLASK_ENV", "production")
-    return handle(flask_app, environ, start_response)
+def handler(event, context):
+    # event/context are provided by Vercel; vercel-wsgi adapts them to WSGI
+    return handle(flask_app, event, context)
