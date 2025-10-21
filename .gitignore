@@ -1,4 +1,58 @@
-# Byte-compiled / optimized / DLL files
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+*.tsbuildinfo
+
+# Per-package (monorepo-friendly)
+web/node_modules/
+web/.next/
+web/out/
+web/dist/
+
+# --- Vercel ---
+.vercel/
+
+# --- Env & local config ---
+.env
+.env.*
+!.env.example
+*.local
+
+# --- Python (legacy files) ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.history/
+.DS_Store
+Thumbs.db
+
+# --- Misc build caches ---
+.cache/
+.sass-cache/# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
