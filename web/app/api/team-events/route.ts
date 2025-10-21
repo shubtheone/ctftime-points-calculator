@@ -32,9 +32,14 @@ function parseTeamEvents(html: string): TeamEvent[] {
     if (tds.length < 5) return;
 
     const place = $(tds[0]).text().trim();
-    const nameCell = $(tds[1]);
-    const event_name = nameCell.text().trim();
-    const event_link = toAbsolute(nameCell.find("a").attr("href") || null);
+    // Prefer the anchor that links to the event page to get a reliable event name
+    const linkEl = $(row)
+      .find('a[href^="/event/"], a[href^="https://ctftime.org/event/"]')
+      .first();
+    const event_link = toAbsolute(linkEl.attr("href") || null);
+    // Fallback: if no link is found, use the 2nd column text
+    const rawName = linkEl.text().trim() || $(tds[1]).text().trim();
+    const event_name = rawName.replace(/\s+/g, " ");
 
     // Rating points often in the last or 2nd last column
     const ptsText =

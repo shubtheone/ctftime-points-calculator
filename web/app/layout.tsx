@@ -14,11 +14,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header>
           <h1>CTFtime Points Calculator</h1>
           <nav>
-            <a href="/">Home</a>
+            <a href="/">Home </a>
             &middot;
-            <a href="/event">Event Rating</a>
+            <a href="/event"> Event Rating </a>
             &middot;
-            <a href="/team">Team Total</a>
+            <a href="/team"> Team Total</a>
           </nav>
           <hr />
         </header>
