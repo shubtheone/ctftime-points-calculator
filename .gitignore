@@ -133,3 +133,8 @@ web/yarn.lock
 !package-lock.json
 !web/package-lock.json
 .vercel
+
+# --- Legacy Flask assets at repo root ---
+/static/
+/templates/
+/runtime.txt
