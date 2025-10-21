@@ -120,6 +120,3 @@ These routes live under `web/app/api/*` and are deployed with the app.
 - Organizer points are read from the team API per season. If you want historical seasons, pass `year` to `/api/team-events` or we can add a year selector to the UI.
 
 ---
-
-## License
-MIT (or your preferred license). If you need a LICENSE file added, say the word and I’ll include one.
