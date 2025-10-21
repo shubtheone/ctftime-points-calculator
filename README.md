@@ -109,7 +109,9 @@ These routes live under `web/app/api/*` and are deployed with the app.
 ---
 
 ## Deployment
+
 https://www.ctfpoints-calculator.me/
+
 ---
 
 ## Notes & caveats
