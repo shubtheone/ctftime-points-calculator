@@ -1,8 +1,13 @@
 # CTFtime Points Calculator
 
+---
 
-<img width="655" height="822" alt="Screenshot 2025-10-21 121408" src="https://github.com/user-attachments/assets/11df3fb8-147a-4d94-ad66-197f455da95f" />
-<img width="613" height="565" alt="Screenshot 2025-10-21 121455" src="https://github.com/user-attachments/assets/92f84e53-6d2f-492f-abdd-515cc8953c94" />
+## Deployment
+
+https://www.ctfpoints-calculator.me/
+
+---
+
 
 A lightweight Next.js app to calculate your team’s CTFtime rating immediately after a CTF ends. It lets you:
 - Compute an event’s rating using the standard formula with your numbers.
@@ -112,15 +117,14 @@ These routes live under `web/app/api/*` and are deployed with the app.
 
 ---
 
-## Deployment
-
-https://www.ctfpoints-calculator.me/
-
----
-
 ## Notes & caveats
 - This project is not affiliated with CTFtime. Respect their rate limits and robots.txt. A simple UA is set in requests.
 - Event weights and team results come from public pages that may change. If parsing breaks, update the selectors/regex.
 - Organizer points are read from the team API per season. If you want historical seasons, pass `year` to `/api/team-events` or we can add a year selector to the UI.
 
 ---
+
+## Visual Usage
+
+<img width="655" height="822" alt="Screenshot 2025-10-21 121408" src="https://github.com/user-attachments/assets/11df3fb8-147a-4d94-ad66-197f455da95f" />
+<img width="613" height="565" alt="Screenshot 2025-10-21 121455" src="https://github.com/user-attachments/assets/92f84e53-6d2f-492f-abdd-515cc8953c94" />
