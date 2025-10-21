@@ -109,9 +109,7 @@ These routes live under `web/app/api/*` and are deployed with the app.
 ---
 
 ## Deployment
-- The app is Vercel-friendly (Next.js 14). Add your domain in Vercel; it will provision the runtime automatically.
-- Optional: Put Cloudflare in front for DNS/proxy if desired. If you change your domain’s NS to Cloudflare, manage your DNS records there (CNAME apex flattening recommended) and point to Vercel’s target.
-
+https://www.ctfpoints-calculator.me/
 ---
 
 ## Notes & caveats
