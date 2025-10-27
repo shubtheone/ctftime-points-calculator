@@ -98,7 +98,9 @@ These routes live under `web/app/api/*` and are deployed with the app.
     - Returns: `{ events, top, total, hosted_points, year }`.
   - Backward compatibility: If you also provide `event_id/hosted_event_id` (older flow), it may approximate hosted points as `weight * 2`.
 
+
 ---
+
 
 ## Project structure
 ```
