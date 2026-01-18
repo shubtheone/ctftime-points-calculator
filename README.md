@@ -6,7 +6,7 @@
 
 https://www.ctfpoints-calculator.me/
 
----
+--- 
 
 
 A lightweight Next.js app to calculate your team’s CTFtime rating immediately after a CTF ends. It lets you:
