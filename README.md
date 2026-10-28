@@ -4,8 +4,7 @@
 
 ## Deployment
 
-[https://www.ctfpoints-calculator.me/
-](https://ctftime-points-calculator.vercel.app/)
+[https://ctfd-calculator.shubtheone.xyz/](https://ctfd-calculator.shubtheone.xyz/)
 
 --- 
 

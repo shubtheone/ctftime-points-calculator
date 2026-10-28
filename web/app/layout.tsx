@@ -1,4 +1,5 @@
 import React from "react";
+import { Analytics } from "@vercel/analytics/next";
 export const metadata = {
   title: "CTFtime Points Calculator",
 };
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
           </p>
         </footer>
+        <Analytics />
       </body>
     </html>
   );

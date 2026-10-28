@@ -8,16 +8,17 @@
     "start": "next start"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "cheerio": "^1.1.2",
     "next": "^14.2.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "cheerio": "^1.1.2"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.46",
-    "@types/react-dom": "^18.2.18"
+    "@types/react-dom": "^18.2.18",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=20.18.1"
