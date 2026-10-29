@@ -1,7 +1,12 @@
 import React from "react";
 import { Analytics } from "@vercel/analytics/next";
+const ADSENSE_CLIENT = "ca-pub-6677770212617731";
+
 export const metadata = {
   title: "CTFtime Points Calculator",
+  other: {
+    "google-adsense-account": ADSENSE_CLIENT,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -10,6 +15,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" />
         <link rel="stylesheet" href="/static/styles.css" />
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+        />
       </head>
       <body>
         <header>
@@ -51,6 +61,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="https://buymeacoffee.com/shubtheone" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
               ☕
             </a>
+            &nbsp;&middot;&nbsp;
+            <a href="/privacy">Privacy Policy</a>
           </p>
         </footer>
         <Analytics />
